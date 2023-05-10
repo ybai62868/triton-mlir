@@ -21,7 +21,7 @@ endif()
 
 # Options
 option(TRITON_BUILD_TUTORIALS "Build C++ Triton tutorials" ON)
-option(TRITON_BUILD_PYTHON_MODULE "Build Python Triton bindings" OFF)
+option(TRITON_BUILD_PYTHON_MODULE "Build Python Triton bindings" ON)
 
 # Ensure Python3 vars are set correctly
 # used conditionally in this file and by lit tests

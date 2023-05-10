@@ -18,49 +18,14 @@ The foundations of this project are described in the following MAPL2019 publicat
 
 The [official documentation](https://triton-lang.org) contains installation instructions and tutorials.
 
-# Quick Installation
-
-You can install the latest stable release of Triton from pip:
-
-```bash
-pip install triton
-```
-Binary wheels are available for CPython 3.6-3.11 and PyPy 3.7-3.9.
-
-And the latest nightly release:
-
-```bash
-pip install -U --pre triton
-```
 
 # Install from source
 
 ```
-git clone https://github.com/openai/triton.git;
-cd triton/python;
-pip install cmake; # build-time dependency
-pip install -e .
-```
+git clone https://github.com/openai/triton.git
+cd triton
+mkdir build && cd build
+cmake .. 
+make -j8
+mv .libtriton.so /path-to-triton-python-_C/
 
-# Changelog
-
-Version 2.0 is out! New features include:
-- Many, many bug fixes
-- Performance improvements
-- Backend rewritten to use MLIR
-- Support for kernels that contain back-to-back matmuls (e.g., flash attention)
-
-# Contributing
-
-Community contributions are more than welcome, whether it be to fix bugs or to add new features at [github](https://github.com/openai/triton/). For more detailed instructions, please visit our [contributor's guide](CONTRIBUTING.md).
-
-If you’re interested in joining our team and working on Triton & GPU kernels, [we’re hiring](https://openai.com/jobs/#acceleration)!
-
-# Compatibility
-
-Supported Platforms:
-  * Linux
-
-Supported Hardware:
-  * NVIDIA GPUs (Compute Capability 7.0+)
-  * Under development: AMD GPUs, CPUs
