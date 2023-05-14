@@ -232,7 +232,7 @@ class Mark:
             xlabel = bench.xlabel if bench.xlabel else " = ".join(bench.x_names)
             ax.set_xlabel(xlabel)
             ax.set_ylabel(bench.ylabel)
-            # ax.set_title(bench.plot_name)
+            ax.set_title(bench.plot_name)
             ax.set_xscale("log" if bench.x_log else "linear")
             ax.set_yscale("log" if bench.y_log else "linear")
             if show_plots:
