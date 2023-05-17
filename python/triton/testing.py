@@ -5,7 +5,7 @@ import sys
 from contextlib import contextmanager
 
 import triton._C.libtriton.triton as _triton
-
+import torch.cuda.nvtx as nvtx
 
 def nvsmi(attrs):
     attrs = ','.join(attrs)
@@ -78,7 +78,9 @@ def do_bench(fn, warmup=25, rep=100, grad_to_none=None,
         cache.zero_()
         # record time of `fn`
         start_event[i].record()
+        nvtx.rang_push("kernel")
         fn()
+        nvtx.range_pop()
         end_event[i].record()
     # Record clocks
     torch.cuda.synchronize()
