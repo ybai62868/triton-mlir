@@ -7,7 +7,7 @@ from typing import Dict, Optional
 
 
 def default_cache_dir():
-    return os.path.join(Path.home(), ".triton", "cache")
+    return os.path.join(Path.home(), ".triton", "results")
 
 
 class CacheManager(ABC):

@@ -78,9 +78,9 @@ def do_bench(fn, warmup=25, rep=100, grad_to_none=None,
         cache.zero_()
         # record time of `fn`
         start_event[i].record()
-        nvtx.rang_push("kernel")
+        # nvtx.rang_push("kernel")
         fn()
-        nvtx.range_pop()
+        # nvtx.range_pop()
         end_event[i].record()
     # Record clocks
     torch.cuda.synchronize()
