@@ -19,7 +19,6 @@ In doing so, you will learn about:
 # --------------
 
 import torch
-
 import triton
 import triton.language as tl
 
@@ -66,6 +65,7 @@ def add(x: torch.Tensor, y: torch.Tensor):
     # The SPMD launch grid denotes the number of kernel instances that run in parallel.
     # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].
     # In this case, we use a 1D grid where the size is the number of blocks:
+    # import pdb;pdb.set_trace()
     grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']),)
     # NOTE:
     #  - Each torch.tensor object is implicitly converted into a pointer to its first element.
@@ -80,18 +80,18 @@ def add(x: torch.Tensor, y: torch.Tensor):
 # %%
 # We can now use the above function to compute the element-wise sum of two `torch.tensor` objects and test its correctness:
 
-torch.manual_seed(0)
-size = 98432
-x = torch.rand(size, device='cuda')
-y = torch.rand(size, device='cuda')
-output_torch = x + y
-output_triton = add(x, y)
-print(output_torch)
-print(output_triton)
-print(
-    f'The maximum difference between torch and triton is '
-    f'{torch.max(torch.abs(output_torch - output_triton))}'
-)
+# torch.manual_seed(0)
+# size = 98432
+# x = torch.rand(size, device='cuda')
+# y = torch.rand(size, device='cuda')
+# output_torch = x + y
+# output_triton = add(x, y)
+# print(output_torch)
+# print(output_triton)
+# print(
+#     f'The maximum difference between torch and triton is '
+#     f'{torch.max(torch.abs(output_torch - output_triton))}'
+# )
 
 # %%
 # Seems like we're good to go!
@@ -109,13 +109,17 @@ print(
     triton.testing.Benchmark(
         x_names=['size'],  # Argument names to use as an x-axis for the plot.
         x_vals=[
-            2 ** i for i in range(12, 28, 1)
+            # 2 ** i for i in range(12, 28, 1)
+            2048
         ],  # Different possible values for `x_name`.
         x_log=True,  # x axis is logarithmic.
         line_arg='provider',  # Argument name whose value corresponds to a different line in the plot.
-        line_vals=['triton', 'torch'],  # Possible values for `line_arg`.
-        line_names=['Triton', 'Torch'],  # Label name for the lines.
-        styles=[('blue', '-'), ('green', '-')],  # Line styles.
+        # line_vals=['triton', 'torch'],  # Possible values for `line_arg`.
+        line_vals=['triton'],  # Possible values for `line_arg`.
+        # line_names=['Triton', 'Torch'],  # Label name for the lines.
+        line_names=['Triton'],  # Label name for the lines.
+        # styles=[('blue', '-'), ('green', '-')],  # Line styles.
+        styles=[('blue', '-')],  # Line styles.
         ylabel='GB/s',  # Label name for the y-axis.
         plot_name='vector-add-performance',  # Name for the plot. Used also as a file name for saving the plot.
         args={},  # Values for function arguments not in `x_names` and `y_name`.
@@ -136,4 +140,7 @@ def benchmark(size, provider):
 # %%
 # We can now run the decorated function above. Pass `print_data=True` to see the performance number, `show_plots=True` to plot them, and/or
 # `save_path='/path/to/results/' to save them to disk along with raw CSV data:
-benchmark.run(print_data=True, show_plots=True)
+# import pdb;pdb.set_trace()
+benchmark.run(print_data=True, show_plots=False)
+
+# %%

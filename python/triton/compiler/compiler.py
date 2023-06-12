@@ -53,6 +53,8 @@ def optimize_ttir(mod, arch):
     pm.add_licm_pass()
     pm.add_symbol_dce_pass()
     pm.run(mod)
+    with open("optmized_ttir.txt", "w") as f:
+        f.write(mod.str())
     return mod
 
 
@@ -382,6 +384,7 @@ def compile(fn, **kwargs):
                        lambda src: optimize_ttgir(ttir_to_ttgir(src, num_warps), num_stages, arch))
     stages["llir"] = (lambda path: Path(path).read_text(),
                       lambda src: ttgir_to_llir(src, extern_libs, arch))
+
     if is_cuda:
         add_cuda_stages(arch, extern_libs, stages)
     else:

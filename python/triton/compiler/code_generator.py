@@ -961,17 +961,21 @@ def kernel_suffix(signature, specialization):
 
 def ast_to_ttir(fn, signature, specialization, constants, debug):
     # canonicalize signature
+    print("start ast_to_ttir ...")
     if isinstance(signature, str):
         signature = {k: v.strip() for k, v in enumerate(signature.split(","))}
     context = ir.context()
     context.load_triton()
     # create kernel prototype
     cst_key = lambda i: fn.arg_names.index(i) if isinstance(i, str) else i
+    print(cst_key)
     constants = {cst_key(key): value for key, value in constants.items()}
     # visit kernel AST
     gscope = fn.__globals__.copy()
     function_name = '_'.join([fn.__name__, kernel_suffix(signature.values(), specialization)])
+    print("function_name", function_name)
     tys = list(signature.values())
+    print(tys)
     new_constants = {k: True if k in tys and tys[k] == "i1" else 1 for k in specialization.equal_to_1}
     new_attrs = {k: ("multiple_of", 16) for k in specialization.divisible_by_16}
     all_constants = constants.copy()
@@ -993,7 +997,9 @@ def ast_to_ttir(fn, signature, specialization, constants, debug):
         if node is None:
             raise
         raise CompilationError(fn.src, node, repr(e)) from e
+
     ret = generator.module
+    print(ret)
     # module takes ownership of the context
     ret.context = context
     return ret
