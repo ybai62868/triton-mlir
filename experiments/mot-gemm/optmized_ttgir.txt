@@ -1,0 +1,203 @@
+#blocked = #triton_gpu.blocked<{sizePerThread = [1, 8], threadsPerWarp = [8, 4], warpsPerCTA = [4, 1], order = [1, 0]}>
+#blocked1 = #triton_gpu.blocked<{sizePerThread = [1, 8], threadsPerWarp = [2, 16], warpsPerCTA = [4, 1], order = [1, 0]}>
+#mma = #triton_gpu.mma<{versionMajor = 2, versionMinor = 0, warpsPerCTA = [2, 2]}>
+#shared = #triton_gpu.shared<{vec = 8, perPhase = 2, maxPhase = 4, order = [1, 0]}>
+#shared1 = #triton_gpu.shared<{vec = 8, perPhase = 1, maxPhase = 8, order = [1, 0]}>
+module attributes {"triton_gpu.num-warps" = 4 : i32} {
+  tt.func public @matmul_kernel_0d1d2d3d4d5d6d7c8d9c10d11c(%arg0: !tt.ptr<f16> {tt.divisibility = 16 : i32}, %arg1: !tt.ptr<f16> {tt.divisibility = 16 : i32}, %arg2: !tt.ptr<f16> {tt.divisibility = 16 : i32}, %arg3: i32 {tt.divisibility = 16 : i32}, %arg4: i32 {tt.divisibility = 16 : i32}, %arg5: i32 {tt.divisibility = 16 : i32}, %arg6: i32 {tt.divisibility = 16 : i32}, %arg7: i32 {tt.divisibility = 16 : i32}, %arg8: i32 {tt.divisibility = 16 : i32}) attributes {noinline = false} {
+    %c1_i32 = arith.constant 1 : i32
+    %c3_i32 = arith.constant 3 : i32
+    %c64_i32 = arith.constant 64 : i32
+    %c2_i32 = arith.constant 2 : i32
+    %c32_i32 = arith.constant 32 : i32
+    %c0_i32 = arith.constant 0 : i32
+    %c4_i32 = arith.constant 4 : i32
+    %cst = arith.constant dense<0.000000e+00> : tensor<128x128xf32, #mma>
+    %cst_0 = arith.constant dense<32> : tensor<128x32xi32, #blocked>
+    %cst_1 = arith.constant dense<0.000000e+00> : tensor<128x32xf32, #blocked>
+    %cst_2 = arith.constant dense<0.000000e+00> : tensor<32x128xf32, #blocked1>
+    %c31_i32 = arith.constant 31 : i32
+    %c127_i32 = arith.constant 127 : i32
+    %c128_i32 = arith.constant 128 : i32
+    %c8_i32 = arith.constant 8 : i32
+    %0 = tt.get_program_id {axis = 0 : i32} : i32
+    %1 = arith.addi %arg3, %c127_i32 : i32
+    %2 = arith.divsi %1, %c128_i32 : i32
+    %3 = arith.addi %arg4, %c127_i32 : i32
+    %4 = arith.divsi %3, %c128_i32 : i32
+    %5 = arith.muli %4, %c8_i32 : i32
+    %6 = arith.divsi %0, %5 : i32
+    %7 = arith.muli %6, %c8_i32 : i32
+    %8 = arith.subi %2, %7 : i32
+    %9 = "triton_gpu.cmpi"(%8, %c8_i32) {predicate = 2 : i64} : (i32, i32) -> i1
+    %10 = arith.select %9, %8, %c8_i32 : i32
+    %11 = arith.remsi %0, %10 : i32
+    %12 = arith.addi %7, %11 : i32
+    %13 = arith.remsi %0, %5 : i32
+    %14 = arith.divsi %13, %10 : i32
+    %15 = arith.muli %12, %c128_i32 : i32
+    %16 = tt.make_range {end = 128 : i32, start = 0 : i32} : tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked}>>
+    %17 = tt.make_range {end = 128 : i32, start = 0 : i32} : tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>
+    %18 = tt.make_range {end = 128 : i32, start = 0 : i32} : tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked1}>>
+    %19 = tt.splat %15 : (i32) -> tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked}>>
+    %20 = tt.splat %15 : (i32) -> tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked1}>>
+    %21 = arith.addi %19, %16 : tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked}>>
+    %22 = arith.addi %20, %18 : tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked1}>>
+    %23 = tt.splat %arg3 : (i32) -> tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked}>>
+    %24 = arith.remsi %21, %23 : tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked}>>
+    %25 = arith.muli %14, %c128_i32 : i32
+    %26 = tt.splat %25 : (i32) -> tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>
+    %27 = arith.addi %26, %17 : tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>
+    %28 = tt.splat %arg4 : (i32) -> tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>
+    %29 = arith.remsi %27, %28 : tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>
+    %30 = tt.expand_dims %24 {axis = 1 : i32} : (tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked}>>) -> tensor<128x1xi32, #blocked>
+    %31 = tt.splat %arg6 : (i32) -> tensor<128x1xi32, #blocked>
+    %32 = arith.muli %30, %31 : tensor<128x1xi32, #blocked>
+    %33 = tt.make_range {end = 32 : i32, start = 0 : i32} : tensor<32xi32, #triton_gpu.slice<{dim = 0, parent = #blocked}>>
+    %34 = tt.expand_dims %33 {axis = 0 : i32} : (tensor<32xi32, #triton_gpu.slice<{dim = 0, parent = #blocked}>>) -> tensor<1x32xi32, #blocked>
+    %35 = tt.broadcast %32 : (tensor<128x1xi32, #blocked>) -> tensor<128x32xi32, #blocked>
+    %36 = tt.broadcast %34 : (tensor<1x32xi32, #blocked>) -> tensor<128x32xi32, #blocked>
+    %37 = arith.addi %35, %36 : tensor<128x32xi32, #blocked>
+    %38 = tt.splat %arg0 : (!tt.ptr<f16>) -> tensor<128x32x!tt.ptr<f16>, #blocked>
+    %39 = tt.addptr %38, %37 : tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<128x32xi32, #blocked>
+    %40 = tt.make_range {end = 32 : i32, start = 0 : i32} : tensor<32xi32, #triton_gpu.slice<{dim = 1, parent = #blocked1}>>
+    %41 = tt.expand_dims %40 {axis = 1 : i32} : (tensor<32xi32, #triton_gpu.slice<{dim = 1, parent = #blocked1}>>) -> tensor<32x1xi32, #blocked1>
+    %42 = tt.splat %arg7 : (i32) -> tensor<32x1xi32, #blocked1>
+    %43 = arith.muli %41, %42 : tensor<32x1xi32, #blocked1>
+    %44 = tt.expand_dims %29 {axis = 0 : i32} : (tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>) -> tensor<1x128xi32, #blocked1>
+    %45 = tt.broadcast %43 : (tensor<32x1xi32, #blocked1>) -> tensor<32x128xi32, #blocked1>
+    %46 = tt.broadcast %44 : (tensor<1x128xi32, #blocked1>) -> tensor<32x128xi32, #blocked1>
+    %47 = arith.addi %45, %46 : tensor<32x128xi32, #blocked1>
+    %48 = tt.splat %arg1 : (!tt.ptr<f16>) -> tensor<32x128x!tt.ptr<f16>, #blocked1>
+    %49 = tt.addptr %48, %47 : tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<32x128xi32, #blocked1>
+    %50 = arith.addi %arg5, %c31_i32 : i32
+    %51 = arith.divsi %50, %c32_i32 : i32
+    %52 = arith.truncf %cst_1 : tensor<128x32xf32, #blocked> to tensor<128x32xf16, #blocked>
+    %53 = arith.truncf %cst_2 : tensor<32x128xf32, #blocked1> to tensor<32x128xf16, #blocked1>
+    %54 = arith.muli %arg7, %c32_i32 : i32
+    %55 = tt.splat %54 : (i32) -> tensor<32x128xi32, #blocked1>
+    %56 = arith.cmpi sgt, %51, %c0_i32 : i32
+    %57 = tt.splat %arg5 : (i32) -> tensor<1x32xi32, #blocked>
+    %58 = "triton_gpu.cmpi"(%34, %57) {predicate = 2 : i64} : (tensor<1x32xi32, #blocked>, tensor<1x32xi32, #blocked>) -> tensor<1x32xi1, #blocked>
+    %59 = tt.broadcast %58 : (tensor<1x32xi1, #blocked>) -> tensor<128x32xi1, #blocked>
+    %60 = triton_gpu.alloc_tensor : tensor<4x128x32xf16, #shared>
+    %61 = tt.splat %56 : (i1) -> tensor<128x32xi1, #blocked>
+    %62 = arith.andi %59, %61 : tensor<128x32xi1, #blocked>
+    %63 = triton_gpu.insert_slice_async %39, %60, %c0_i32, %62, %52 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<128x32x!tt.ptr<f16>, #blocked> -> tensor<4x128x32xf16, #shared>
+    triton_gpu.async_commit_group
+    %64 = tt.splat %arg5 : (i32) -> tensor<32x1xi32, #blocked1>
+    %65 = "triton_gpu.cmpi"(%41, %64) {predicate = 2 : i64} : (tensor<32x1xi32, #blocked1>, tensor<32x1xi32, #blocked1>) -> tensor<32x1xi1, #blocked1>
+    %66 = tt.broadcast %65 : (tensor<32x1xi1, #blocked1>) -> tensor<32x128xi1, #blocked1>
+    %67 = triton_gpu.alloc_tensor : tensor<4x32x128xf16, #shared1>
+    %68 = tt.splat %56 : (i1) -> tensor<32x128xi1, #blocked1>
+    %69 = arith.andi %66, %68 : tensor<32x128xi1, #blocked1>
+    %70 = triton_gpu.insert_slice_async %49, %67, %c0_i32, %69, %53 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<32x128x!tt.ptr<f16>, #blocked1> -> tensor<4x32x128xf16, #shared1>
+    triton_gpu.async_commit_group
+    %71 = tt.addptr %39, %cst_0 : tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<128x32xi32, #blocked>
+    %72 = tt.addptr %49, %55 : tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<32x128xi32, #blocked1>
+    %73 = arith.cmpi sgt, %51, %c1_i32 : i32
+    %74 = arith.subi %arg5, %c32_i32 : i32
+    %75 = tt.splat %74 : (i32) -> tensor<1x32xi32, #blocked>
+    %76 = "triton_gpu.cmpi"(%34, %75) {predicate = 2 : i64} : (tensor<1x32xi32, #blocked>, tensor<1x32xi32, #blocked>) -> tensor<1x32xi1, #blocked>
+    %77 = tt.broadcast %76 : (tensor<1x32xi1, #blocked>) -> tensor<128x32xi1, #blocked>
+    %78 = tt.splat %73 : (i1) -> tensor<128x32xi1, #blocked>
+    %79 = arith.andi %77, %78 : tensor<128x32xi1, #blocked>
+    %80 = triton_gpu.insert_slice_async %71, %63, %c1_i32, %79, %52 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<128x32x!tt.ptr<f16>, #blocked> -> tensor<4x128x32xf16, #shared>
+    triton_gpu.async_commit_group
+    %81 = tt.splat %74 : (i32) -> tensor<32x1xi32, #blocked1>
+    %82 = "triton_gpu.cmpi"(%41, %81) {predicate = 2 : i64} : (tensor<32x1xi32, #blocked1>, tensor<32x1xi32, #blocked1>) -> tensor<32x1xi1, #blocked1>
+    %83 = tt.broadcast %82 : (tensor<32x1xi1, #blocked1>) -> tensor<32x128xi1, #blocked1>
+    %84 = tt.splat %73 : (i1) -> tensor<32x128xi1, #blocked1>
+    %85 = arith.andi %83, %84 : tensor<32x128xi1, #blocked1>
+    %86 = triton_gpu.insert_slice_async %72, %70, %c1_i32, %85, %53 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<32x128x!tt.ptr<f16>, #blocked1> -> tensor<4x32x128xf16, #shared1>
+    triton_gpu.async_commit_group
+    %87 = tt.addptr %71, %cst_0 : tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<128x32xi32, #blocked>
+    %88 = tt.addptr %72, %55 : tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<32x128xi32, #blocked1>
+    %89 = arith.cmpi sgt, %51, %c2_i32 : i32
+    %90 = arith.subi %arg5, %c64_i32 : i32
+    %91 = tt.splat %90 : (i32) -> tensor<1x32xi32, #blocked>
+    %92 = "triton_gpu.cmpi"(%34, %91) {predicate = 2 : i64} : (tensor<1x32xi32, #blocked>, tensor<1x32xi32, #blocked>) -> tensor<1x32xi1, #blocked>
+    %93 = tt.broadcast %92 : (tensor<1x32xi1, #blocked>) -> tensor<128x32xi1, #blocked>
+    %94 = tt.splat %89 : (i1) -> tensor<128x32xi1, #blocked>
+    %95 = arith.andi %93, %94 : tensor<128x32xi1, #blocked>
+    %96 = triton_gpu.insert_slice_async %87, %80, %c2_i32, %95, %52 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<128x32x!tt.ptr<f16>, #blocked> -> tensor<4x128x32xf16, #shared>
+    triton_gpu.async_commit_group
+    %97 = tt.splat %90 : (i32) -> tensor<32x1xi32, #blocked1>
+    %98 = "triton_gpu.cmpi"(%41, %97) {predicate = 2 : i64} : (tensor<32x1xi32, #blocked1>, tensor<32x1xi32, #blocked1>) -> tensor<32x1xi1, #blocked1>
+    %99 = tt.broadcast %98 : (tensor<32x1xi1, #blocked1>) -> tensor<32x128xi1, #blocked1>
+    %100 = tt.splat %89 : (i1) -> tensor<32x128xi1, #blocked1>
+    %101 = arith.andi %99, %100 : tensor<32x128xi1, #blocked1>
+    %102 = triton_gpu.insert_slice_async %88, %86, %c2_i32, %101, %53 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<32x128x!tt.ptr<f16>, #blocked1> -> tensor<4x32x128xf16, #shared1>
+    triton_gpu.async_commit_group
+    triton_gpu.async_wait {num = 4 : i32}
+    %103 = triton_gpu.extract_slice %96[0, 0, 0] [1, 128, 32] [1, 1, 1] : tensor<4x128x32xf16, #shared> to tensor<128x32xf16, #shared>
+    %104 = triton_gpu.extract_slice %102[0, 0, 0] [1, 32, 128] [1, 1, 1] : tensor<4x32x128xf16, #shared1> to tensor<32x128xf16, #shared1>
+    %105 = triton_gpu.extract_slice %103[0, 0] [128, 16] [1, 1] : tensor<128x32xf16, #shared> to tensor<128x16xf16, #shared>
+    %106 = triton_gpu.convert_layout %105 : (tensor<128x16xf16, #shared>) -> tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>>
+    %107 = triton_gpu.extract_slice %104[0, 0] [16, 128] [1, 1] : tensor<32x128xf16, #shared1> to tensor<16x128xf16, #shared1>
+    %108 = triton_gpu.convert_layout %107 : (tensor<16x128xf16, #shared1>) -> tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>>
+    %109:14 = scf.for %arg9 = %c0_i32 to %51 step %c1_i32 iter_args(%arg10 = %cst, %arg11 = %39, %arg12 = %49, %arg13 = %96, %arg14 = %102, %arg15 = %103, %arg16 = %104, %arg17 = %87, %arg18 = %88, %arg19 = %c2_i32, %arg20 = %c3_i32, %arg21 = %c1_i32, %arg22 = %106, %arg23 = %108) -> (tensor<128x128xf32, #mma>, tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<4x128x32xf16, #shared>, tensor<4x32x128xf16, #shared1>, tensor<128x32xf16, #shared>, tensor<32x128xf16, #shared1>, tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<32x128x!tt.ptr<f16>, #blocked1>, i32, i32, i32, tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>>, tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>>)  : i32 {
+      %128 = triton_gpu.extract_slice %arg15[0, 16] [128, 16] [1, 1] : tensor<128x32xf16, #shared> to tensor<128x16xf16, #shared>
+      %129 = triton_gpu.extract_slice %arg16[16, 0] [16, 128] [1, 1] : tensor<32x128xf16, #shared1> to tensor<16x128xf16, #shared1>
+      %130 = triton_gpu.convert_layout %128 : (tensor<128x16xf16, #shared>) -> tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>>
+      %131 = triton_gpu.convert_layout %129 : (tensor<16x128xf16, #shared1>) -> tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>>
+      %132 = tt.dot %arg22, %arg23, %arg10 {allowTF32 = true} : tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>> * tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>> -> tensor<128x128xf32, #mma>
+      %133 = tt.dot %130, %131, %132 {allowTF32 = true} : tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>> * tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>> -> tensor<128x128xf32, #mma>
+      %134 = tt.addptr %arg11, %cst_0 : tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<128x32xi32, #blocked>
+      %135 = tt.addptr %arg12, %55 : tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<32x128xi32, #blocked1>
+      %136 = arith.addi %arg19, %c1_i32 : i32
+      %137 = arith.cmpi slt, %136, %51 : i32
+      %138 = arith.remsi %arg20, %c4_i32 : i32
+      %139 = arith.remsi %arg21, %c4_i32 : i32
+      %140 = arith.muli %136, %c32_i32 : i32
+      %141 = arith.subi %arg5, %140 : i32
+      %142 = tt.splat %141 : (i32) -> tensor<1x32xi32, #blocked>
+      %143 = "triton_gpu.cmpi"(%34, %142) {predicate = 2 : i64} : (tensor<1x32xi32, #blocked>, tensor<1x32xi32, #blocked>) -> tensor<1x32xi1, #blocked>
+      %144 = tt.broadcast %143 : (tensor<1x32xi1, #blocked>) -> tensor<128x32xi1, #blocked>
+      %145 = tt.splat %141 : (i32) -> tensor<32x1xi32, #blocked1>
+      %146 = "triton_gpu.cmpi"(%41, %145) {predicate = 2 : i64} : (tensor<32x1xi32, #blocked1>, tensor<32x1xi32, #blocked1>) -> tensor<32x1xi1, #blocked1>
+      %147 = tt.broadcast %146 : (tensor<32x1xi1, #blocked1>) -> tensor<32x128xi1, #blocked1>
+      %148 = tt.addptr %arg17, %cst_0 : tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<128x32xi32, #blocked>
+      %149 = tt.addptr %arg18, %55 : tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<32x128xi32, #blocked1>
+      %150 = tt.splat %137 : (i1) -> tensor<128x32xi1, #blocked>
+      %151 = arith.andi %144, %150 : tensor<128x32xi1, #blocked>
+      %152 = triton_gpu.insert_slice_async %148, %arg13, %138, %151, %52 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<128x32x!tt.ptr<f16>, #blocked> -> tensor<4x128x32xf16, #shared>
+      triton_gpu.async_commit_group
+      %153 = tt.splat %137 : (i1) -> tensor<32x128xi1, #blocked1>
+      %154 = arith.andi %147, %153 : tensor<32x128xi1, #blocked1>
+      %155 = triton_gpu.insert_slice_async %149, %arg14, %138, %154, %53 {axis = 0 : i32, cache = 1 : i32, evict = 1 : i32, isVolatile = false} : tensor<32x128x!tt.ptr<f16>, #blocked1> -> tensor<4x32x128xf16, #shared1>
+      triton_gpu.async_commit_group
+      triton_gpu.async_wait {num = 4 : i32}
+      %156 = triton_gpu.extract_slice %152[%139, 0, 0] [1, 128, 32] [1, 1, 1] : tensor<4x128x32xf16, #shared> to tensor<128x32xf16, #shared>
+      %157 = triton_gpu.extract_slice %155[%139, 0, 0] [1, 32, 128] [1, 1, 1] : tensor<4x32x128xf16, #shared1> to tensor<32x128xf16, #shared1>
+      %158 = arith.addi %arg20, %c1_i32 : i32
+      %159 = arith.addi %arg21, %c1_i32 : i32
+      %160 = triton_gpu.extract_slice %156[0, 0] [128, 16] [1, 1] : tensor<128x32xf16, #shared> to tensor<128x16xf16, #shared>
+      %161 = triton_gpu.convert_layout %160 : (tensor<128x16xf16, #shared>) -> tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>>
+      %162 = triton_gpu.extract_slice %157[0, 0] [16, 128] [1, 1] : tensor<32x128xf16, #shared1> to tensor<16x128xf16, #shared1>
+      %163 = triton_gpu.convert_layout %162 : (tensor<16x128xf16, #shared1>) -> tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>>
+      scf.yield %133, %134, %135, %152, %155, %156, %157, %148, %149, %136, %158, %159, %161, %163 : tensor<128x128xf32, #mma>, tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<32x128x!tt.ptr<f16>, #blocked1>, tensor<4x128x32xf16, #shared>, tensor<4x32x128xf16, #shared1>, tensor<128x32xf16, #shared>, tensor<32x128xf16, #shared1>, tensor<128x32x!tt.ptr<f16>, #blocked>, tensor<32x128x!tt.ptr<f16>, #blocked1>, i32, i32, i32, tensor<128x16xf16, #triton_gpu.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>>, tensor<16x128xf16, #triton_gpu.dot_op<{opIdx = 1, parent = #mma, kWidth = 2}>>
+    }
+    triton_gpu.async_wait {num = 0 : i32}
+    %110 = arith.truncf %109#0 : tensor<128x128xf32, #mma> to tensor<128x128xf16, #mma>
+    %111 = tt.expand_dims %22 {axis = 1 : i32} : (tensor<128xi32, #triton_gpu.slice<{dim = 1, parent = #blocked1}>>) -> tensor<128x1xi32, #blocked1>
+    %112 = tt.splat %arg8 : (i32) -> tensor<128x1xi32, #blocked1>
+    %113 = arith.muli %112, %111 : tensor<128x1xi32, #blocked1>
+    %114 = tt.splat %arg2 : (!tt.ptr<f16>) -> tensor<128x1x!tt.ptr<f16>, #blocked1>
+    %115 = tt.addptr %114, %113 : tensor<128x1x!tt.ptr<f16>, #blocked1>, tensor<128x1xi32, #blocked1>
+    %116 = tt.expand_dims %27 {axis = 0 : i32} : (tensor<128xi32, #triton_gpu.slice<{dim = 0, parent = #blocked1}>>) -> tensor<1x128xi32, #blocked1>
+    %117 = tt.broadcast %115 : (tensor<128x1x!tt.ptr<f16>, #blocked1>) -> tensor<128x128x!tt.ptr<f16>, #blocked1>
+    %118 = tt.broadcast %116 : (tensor<1x128xi32, #blocked1>) -> tensor<128x128xi32, #blocked1>
+    %119 = tt.addptr %117, %118 : tensor<128x128x!tt.ptr<f16>, #blocked1>, tensor<128x128xi32, #blocked1>
+    %120 = tt.splat %arg3 : (i32) -> tensor<128x1xi32, #blocked1>
+    %121 = "triton_gpu.cmpi"(%111, %120) {predicate = 2 : i64} : (tensor<128x1xi32, #blocked1>, tensor<128x1xi32, #blocked1>) -> tensor<128x1xi1, #blocked1>
+    %122 = tt.splat %arg4 : (i32) -> tensor<1x128xi32, #blocked1>
+    %123 = "triton_gpu.cmpi"(%116, %122) {predicate = 2 : i64} : (tensor<1x128xi32, #blocked1>, tensor<1x128xi32, #blocked1>) -> tensor<1x128xi1, #blocked1>
+    %124 = tt.broadcast %121 : (tensor<128x1xi1, #blocked1>) -> tensor<128x128xi1, #blocked1>
+    %125 = tt.broadcast %123 : (tensor<1x128xi1, #blocked1>) -> tensor<128x128xi1, #blocked1>
+    %126 = arith.andi %124, %125 : tensor<128x128xi1, #blocked1>
+    %127 = triton_gpu.convert_layout %110 : (tensor<128x128xf16, #mma>) -> tensor<128x128xf16, #blocked1>
+    tt.store %119, %127, %126 {cache = 1 : i32, evict = 1 : i32} : tensor<128x128xf16, #blocked1>
+    tt.return
+  }
+}
