@@ -33,6 +33,7 @@ if __name__ == '__main__':
 
     # parse source file to MLIR module
     context = libtriton.ir.context()
+    print(context)
     module = libtriton.ir.parse_mlir_module(args.src, context)
     module.context = context
 

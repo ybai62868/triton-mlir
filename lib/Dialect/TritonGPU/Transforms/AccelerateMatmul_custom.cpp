@@ -5,6 +5,8 @@
 #include "triton/Dialect/TritonGPU/Transforms/Passes.h"
 #include <memory>
 
+using namespace std;
+
 using namespace mlir;
 namespace {
 using triton::DotOp;
@@ -40,7 +42,6 @@ SmallVector<int64_t, 2> mmaVersionToShapePerWarp(int version) {
     return {0, 0};
   }
 }
-
 SmallVector<unsigned, 2> warpsPerTileV2(triton::DotOp dotOp,
                                         const ArrayRef<int64_t> shape,
                                         int numWarps) {
@@ -50,12 +51,10 @@ SmallVector<unsigned, 2> warpsPerTileV2(triton::DotOp dotOp,
         return isa<triton::DotOp>(op);
       }) != slices.end())
     return {(unsigned)numWarps, 1};
-
+  std::cout << "starting warpsPerTileV2" << std::endl;
   SmallVector<unsigned, 2> ret = {1, 1};
-  // SmallVector<int64_t, 2> shapePerWarp = {16, 8};
+//   SmallVector<int64_t, 2> shapePerWarp = {16, 8};
   SmallVector<int64_t, 2> shapePerWarp = {16, 8};
-  std::cout << "shape" << std::endl;
-  std::cout << shape[0] << " " << shape[1] << std::endl;
   bool changed = false;
   // TODO (@daadaada): double-check.
   // original logic in
@@ -75,13 +74,73 @@ SmallVector<unsigned, 2> warpsPerTileV2(triton::DotOp dotOp,
       ret[1] *= 2;
     }
   } while (true);
-  std::cout << "shapePerWarp" << std::endl;
-  std::cout << shapePerWarp[0] << " " << shapePerWarp[1] << std::endl;
+//   do {
+//     changed = false;
+//     if (ret[0] * ret[1] >= numWarps)
+//       break;
+// if (shape[0] / shapePerWarp[0] / ret[0] >=
+//         shape[1] / (shapePerWarp[1] * 2) / ret[1] &&
+//     shape[1] / (shapePerWarp[1] * 2) / ret[1] >=
+//         shape[2] / (shapePerWarp[2] * 4) / ret[2]) {
+//   if (ret[0] < shape[0] / shapePerWarp[0]) {
+//     ret[0] *= 2;
+//   } else if (ret[1] < shape[1] / (shapePerWarp[1] * 2)) {
+//     ret[1] *= 2;
+//   } else {
+//     ret[2] *= 2;
+//   }
+// } else if (shape[1] / (shapePerWarp[1] * 2) / ret[1] >=
+//                shape[2] / (shapePerWarp[2] * 4) / ret[2]) {
+//   if (ret[1] < shape[1] / (shapePerWarp[1] * 2)) {
+//     ret[1] *= 2;
+//   } else {
+//     ret[2] *= 2;
+//   }
+// } else {
+//   ret[2] *= 2;
+// }
+//   } while(true);
+
+
   std::cout << "warpsPerTile" << std::endl;
-  ret = {32, 1};
-  std::cout << ret[0] << " " << ret[1] << std::endl;
+  std::cout << ret[0] << " " <<ret[1]<<std::endl;
   return ret;
 }
+// SmallVector<unsigned, 2> warpsPerTileV2(triton::DotOp dotOp,
+//                                         const ArrayRef<int64_t> shape,
+//                                         int numWarps) {
+//   SetVector<Operation *> slices;
+//   mlir::getForwardSlice(dotOp.getResult(), &slices);
+//   if (llvm::find_if(slices, [](Operation *op) {
+//         return isa<triton::DotOp>(op);
+//       }) != slices.end())
+//     return {(unsigned)numWarps, 1};
+
+//   SmallVector<unsigned, 2> ret = {1, 1};
+//   SmallVector<int64_t, 2> shapePerWarp = {16, 8};
+//   // SmallVector<int64_t, 2> shapePerWarp = {32, 4};
+//   bool changed = false;
+//   // TODO (@daadaada): double-check.
+//   // original logic in
+//   // https://github.com/openai/triton/blob/master/lib/codegen/analysis/layout.cc#L252
+//   // seems buggy for shape = [32, 16] ?
+//   do {
+//     changed = false;
+//     if (ret[0] * ret[1] >= numWarps)
+//       break;
+//     if (shape[0] / shapePerWarp[0] / ret[0] >=
+//         shape[1] / (shapePerWarp[1] * 2) / ret[1]) {
+//       if (ret[0] < shape[0] / shapePerWarp[0]) {
+//         ret[0] *= 2;
+//       } else
+//         ret[1] *= 2;
+//     } else {
+//       ret[1] *= 2;
+//     }
+//   } while (true);
+//   std::cout << ret[0] << " " <<ret[1]<< std::endl;
+//   return ret;
+// }
 
 class BlockedToMMA : public mlir::RewritePattern {
   int computeCapability;
@@ -153,8 +212,13 @@ public:
           oldRetType.getContext(), versionMajor, numWarps, oldAType.getShape(),
           oldBType.getShape(), retShape, isARow, isBRow, mmaV1Counter++);
     } else if (versionMajor == 2) {
-      auto warpsPerTile = warpsPerTileV2(dotOp, retShape, numWarps);
 
+      // std::cout << "+++++++++++++" << std::endl;
+      auto warpsPerTile = warpsPerTileV2(dotOp, retShape, numWarps);
+      // SmallVector<unsigned, 2>warpsPerTile = {1, 4};
+      // SmallVector<unsigned, 2>warpsPerTile = {4, 1};
+      // SmallVector<unsigned, 2>warpsPerTile = {2, 1};
+      // SmallVector<unsigned, 2>warpsPerTile = {1, 2};
 
       mmaEnc = triton::gpu::MmaEncodingAttr::get(
           oldRetType.getContext(), versionMajor, 0 /*versionMinor*/,
@@ -207,11 +271,11 @@ public:
 #define GEN_PASS_CLASSES
 #include "triton/Dialect/TritonGPU/Transforms/Passes.h.inc"
 
-class TritonGPUAccelerateMatmulPass
-    : public TritonGPUAccelerateMatmulBase<TritonGPUAccelerateMatmulPass> {
+class TritonGPUAccelerateMatmulPassCustom
+    : public TritonGPUAccelerateMatmulBase<TritonGPUAccelerateMatmulPassCustom> {
 public:
-  TritonGPUAccelerateMatmulPass() = default;
-  TritonGPUAccelerateMatmulPass(int computeCapability) {
+  TritonGPUAccelerateMatmulPassCustom() = default;
+  TritonGPUAccelerateMatmulPassCustom(int computeCapability) {
     this->computeCapability = computeCapability;
   }
   void runOnOperation() override {
@@ -227,6 +291,6 @@ public:
 };
 
 std::unique_ptr<Pass>
-mlir::createTritonGPUAccelerateMatmulPass(int computeCapability) {
-  return std::make_unique<TritonGPUAccelerateMatmulPass>(computeCapability);
+mlir::createTritonGPUAccelerateMatmulPassCustom(int computeCapability) {
+  return std::make_unique<TritonGPUAccelerateMatmulPassCustom>(computeCapability);
 }

@@ -9,6 +9,13 @@ std::unique_ptr<Pass> createTritonGPUPipelinePass(int numStages = 2);
 std::unique_ptr<Pass>
 createTritonGPUAccelerateMatmulPass(int computeCapability = 80);
 
+std::unique_ptr<Pass>
+createTritonGPUAccelerateMatmulPassCustom(int computeCapability = 86);
+
+// add the sketch generation
+// std::unique_ptr<Pass>
+// createTritonSketchGenerationPass(int computeCapability = 80);
+
 std::unique_ptr<Pass> createTritonGPUPrefetchPass();
 
 std::unique_ptr<Pass> createTritonGPUCanonicalizeLoopsPass();

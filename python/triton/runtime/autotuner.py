@@ -96,6 +96,7 @@ class Autotuner(KernelInterface):
                 bench_start = time.time()
                 timings = {config: self._bench(*args, config=config, **kwargs)
                            for config in pruned_configs}
+                print(timings)
                 bench_end = time.time()
                 self.bench_time = bench_end - bench_start
                 self.cache[key] = builtins.min(timings, key=timings.get)
@@ -105,6 +106,8 @@ class Autotuner(KernelInterface):
         else:
             config = self.configs[0]
         self.best_config = config
+        # print(self.best_config.kwargs, self.best_config.num_stages, self.best_config.num_warps)
+        # print(dir(self.best_config))
         if config.pre_hook is not None:
             config.pre_hook(self.nargs)
         return self.fn.run(*args, num_warps=config.num_warps, num_stages=config.num_stages, **kwargs, **config.kwargs)

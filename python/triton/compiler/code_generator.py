@@ -999,7 +999,7 @@ def ast_to_ttir(fn, signature, specialization, constants, debug):
         raise CompilationError(fn.src, node, repr(e)) from e
 
     ret = generator.module
-    print(ret)
+    # print(ret)
     # module takes ownership of the context
     ret.context = context
     return ret

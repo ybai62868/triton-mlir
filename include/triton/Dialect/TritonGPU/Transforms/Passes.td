@@ -59,6 +59,48 @@ def TritonGPUAccelerateMatmul : Pass<"tritongpu-accelerate-matmul", "mlir::Modul
   ];
 }
 
+def TritonGPUAccelerateMatmulCustom : Pass<"tritongpu-accelerate-matmul-custom", "mlir::ModuleOp"> {
+  let summary = "accelerate matmul custom";
+
+  let description = [{
+    Optimize the input/output layout of `dot` instruction to make them compatible hardware accelerators
+    (e.g., Nvidia tensor cores)
+  }];
+
+  let constructor = "mlir::createTritonGPUAccelerateMatmulPassCustom()";
+
+  let dependentDialects = ["mlir::triton::gpu::TritonGPUDialect",
+                           "mlir::triton::TritonDialect"];
+
+  let options = [
+    Option<"computeCapability", "compute-capability",
+           "int32_t", /*default*/"86",
+           "device compute capability">
+  ];
+}
+/*
+  Add the sketch generation pass
+*/
+// def TritonGPUSketchGeneration : Pass<"tritongpu-sketch-generation", "mlir::ModuleOp"> {
+//   let summary = "sketch generation";
+
+//   let description = [{
+//     Generate the sketch automatically which is similar to the TVM.
+//     (e.g., Nvidia tensor cores)
+//   }];
+
+//   let constructor = "mlir::createTritonSketchGenerationPass()";
+
+//   let dependentDialects = ["mlir::triton::gpu::TritonGPUDialect",
+//                            "mlir::triton::TritonDialect"];
+
+//   let options = [
+//     Option<"computeCapability", "compute-capability",
+//            "int32_t", /*default*/"80",
+//            "device compute capability">
+//   ];
+// }
+
 def TritonGPUOptimizeDotOperands : Pass<"tritongpu-optimize-dot-operands", "mlir::ModuleOp"> {
   let summary = "fuse transpositions";
 

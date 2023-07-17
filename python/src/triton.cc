@@ -1508,6 +1508,16 @@ void init_triton_ir(py::module &&m) {
              self.addPass(
                  mlir::createTritonGPUAccelerateMatmulPass(computeCapability));
            })
+      .def("add_tritongpu_accelerate_matmul_pass_custom",
+           [](mlir::PassManager &self, int computeCapability) {
+             self.addPass(
+                 mlir::createTritonGPUAccelerateMatmulPassCustom(computeCapability));
+           })
+     //  .def("add_tritongpu_sketch_generation_pass",
+     //       [](mlir::PassManager &self, int computeCapability) {
+     //         self.addPass(
+     //             mlir::createTritonGPUSketchGenerationPass(computeCapability));
+     //       })
       .def("add_tritongpu_optimize_dot_operands_pass",
            [](mlir::PassManager &self) {
              self.addPass(mlir::createTritonGPUOptimizeDotOperandsPass());

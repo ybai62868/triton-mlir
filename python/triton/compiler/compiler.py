@@ -62,6 +62,8 @@ def ttir_to_ttgir(mod, num_warps):
     pm = _triton.ir.pass_manager(mod.context)
     pm.add_convert_triton_to_tritongpu_pass(num_warps)
     pm.run(mod)
+    with open("original_ttgir.txt", "w") as f:
+        f.write(mod.str())
     return mod
 
 
@@ -71,7 +73,9 @@ def optimize_ttgir(mod, num_stages, arch):
     pm.add_tritongpu_coalesce_pass()
     pm.add_tritongpu_remove_layout_conversions_pass()
     if isinstance(arch, int):
-        pm.add_tritongpu_accelerate_matmul_pass(arch)
+        # pm.add_tritongpu_accelerate_matmul_pass(arch)
+        pm.add_tritongpu_accelerate_matmul_pass_custom(arch)
+        # pm.add_tritongpu_sketch_generation(arch)
     pm.add_tritongpu_remove_layout_conversions_pass()
     pm.add_tritongpu_optimize_dot_operands_pass()
     pm.add_tritongpu_pipeline_pass(num_stages)
@@ -83,6 +87,10 @@ def optimize_ttgir(mod, num_stages, arch):
     pm.add_cse_pass()
     pm.add_symbol_dce_pass()
     pm.run(mod)
+
+    with open("optmized_ttgir.txt", "w") as f:
+        f.write(mod.str())
+
     return mod
 
 
@@ -98,7 +106,11 @@ def ttgir_to_llir(mod, extern_libs, arch):
         _add_external_libs(mod, extern_libs)
     # TODO: separate tritongpu_to_llvmir for different backends
     if _is_cuda(arch):
-        return _triton.translate_triton_gpu_to_llvmir(mod, arch, False)
+        module = _triton.translate_triton_gpu_to_llvmir(mod, arch, False)
+        with open("ttgir_to_llir.txt", "w") as f:
+            f.write(module)
+        return module 
+        #return _triton.translate_triton_gpu_to_llvmir(mod, arch, False)
     else:
         return _triton.translate_triton_gpu_to_llvmir(mod, 0, True)
 
@@ -148,7 +160,11 @@ def llir_to_ptx(mod: Any, arch: int, ptx_version: int = None) -> str:
     if ptx_version is None:
         _, cuda_version = path_to_ptxas()
         ptx_version = ptx_get_version(cuda_version)
-    return _triton.translate_llvmir_to_ptx(mod, arch, ptx_version)
+    module = _triton.translate_llvmir_to_ptx(mod, arch, ptx_version)
+    with open("llir_to_ptx.txt", "w") as f:
+        f.write(module)
+    return module
+    # return _triton.translate_llvmir_to_ptx(mod, arch, ptx_version)
 
 
 def ptx_to_cubin(ptx: str, arch: int):
