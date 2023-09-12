@@ -1,0 +1,49 @@
+buf0: SchedulerNode(ComputedBuffer)
+buf0.writes = [MemoryDep('buf0', c0, {c0: 150528})]
+buf0.unmet_dependencies = []
+buf0.met_dependencies = [MemoryDep('primals_2', c0, {c0: 150528})]
+buf0.users = [NodeUser(node=ExternKernelSchedulerNode(name='buf1'), can_inplace=False, is_weak=False), NodeUser(node=OUTPUT, can_inplace=False, is_weak=False)]
+buf0.group.device = cuda:0
+buf0.group.iteration = (150528, 1)
+buf0.sizes = ([150528], [])
+class buf0_loop_body:
+    var_ranges = {z0: 150528}
+    index0 = z0
+    def body(self, ops):
+        get_index = self.get_index('index0')
+        load = ops.load('primals_2', get_index)
+        constant = ops.constant(1.0, torch.float32)
+        add = ops.add(load, constant)
+        get_index_1 = self.get_index('index0')
+        store = ops.store('buf0', get_index_1, add, None)
+        return store
+
+
+buf1: ExternKernelSchedulerNode(ExternKernelAlloc)
+buf1.writes = [StarDep(name='buf1')]
+buf1.unmet_dependencies = [StarDep(name='buf0')]
+buf1.met_dependencies = [StarDep(name='primals_1')]
+buf1.users = [NodeUser(node=SchedulerNode(name='buf2'), can_inplace=True, is_weak=False)]
+buf1.node.kernel = extern_kernels.convolution
+
+
+buf2: SchedulerNode(ComputedBuffer)
+buf2.writes = [MemoryDep('buf2', 0, {})]
+buf2.unmet_dependencies = [MemoryDep('buf1', 0, {})]
+buf2.met_dependencies = []
+buf2.users = [NodeUser(node=OUTPUT, can_inplace=False, is_weak=False)]
+buf2.group.device = cuda:0
+buf2.group.iteration = (1, 1)
+buf2.sizes = ([], [])
+class buf2_loop_body:
+    var_ranges = {}
+    index0 = 0
+    def body(self, ops):
+        get_index = self.get_index('index0')
+        load = ops.load('buf1', get_index)
+        constant = ops.constant(1.0, torch.float32)
+        add = ops.add(load, constant)
+        get_index_1 = self.get_index('index0')
+        store = ops.store('buf2', get_index_1, add, None)
+        return store
+
