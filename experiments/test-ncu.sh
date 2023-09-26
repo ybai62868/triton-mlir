@@ -1,0 +1,1 @@
+sudo /usr/local/cuda-11.7/bin/ncu -f -o test_cutlass --target-processes all --target-processes-filter regex:python --kernel-name regex:"ampere" --set full /home/yangbai/anaconda3/bin/python run_cutlass.py -w GMM-1024 --cutlass-home /home/yangbai/Documents/compiler/triton_new/cutlass
